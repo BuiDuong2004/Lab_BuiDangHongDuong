@@ -12,9 +12,7 @@ void main() async {
 
   print('\n=== EXERCISE 3: Async + Microtask Debugging ===');
   exercise3();
-  // Brief delay to allow Event Loop and Microtask queue to complete before proceeding
   await Future.delayed(Duration(milliseconds: 100));
-
   print('\n=== EXERCISE 4: Stream Transformation ===');
   await exercise4();
 
@@ -41,25 +39,17 @@ class ProductRepository {
     Product(id: 'p1', name: 'Laptop', price: 999.99),
     Product(id: 'p2', name: 'Mouse', price: 25.00),
   ];
-
-  // Broadcast controller to emit new real-time additions
   final StreamController<Product> _streamController = StreamController<Product>.broadcast();
-
-  // Async fetch returning product list via Future
   Future<List<Product>> getAll() async {
     await Future.delayed(Duration(milliseconds: 200)); // Simulate network latency
     return List.from(_products);
   }
-
-  // Stream getter for real-time updates
   Stream<Product> liveAdded() => _streamController.stream;
 
-  // Method to insert product and emit it to active listeners
   void addProduct(Product product) {
     _products.add(product);
     _streamController.add(product);
   }
-
   void dispose() {
     _streamController.close();
   }
@@ -67,20 +57,13 @@ class ProductRepository {
 
 Future<void> exercise1() async {
   final repo = ProductRepository();
-
-  // Listen to stream BEFORE adding new products
   final subscription = repo.liveAdded().listen((product) {
     print('[Stream Notification] Real-time item added: $product');
   });
-
-  // Fetch initial list
   List<Product> initialList = await repo.getAll();
   print('Initial Product Catalog: $initialList');
-
-  // Trigger real-time stream emissions
   repo.addProduct(Product(id: 'p3', name: 'Keyboard', price: 75.50));
   repo.addProduct(Product(id: 'p4', name: 'Monitor', price: 210.00));
-
   await Future.delayed(Duration(milliseconds: 100));
   subscription.cancel();
   repo.dispose();
@@ -92,49 +75,34 @@ Future<void> exercise1() async {
 class User {
   final String name;
   final String email;
-
   User({required this.name, required this.email});
-
-  // Factory constructor for deserialization
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       name: json['name'] as String,
       email: json['email'] as String,
-    );
-  }
-
+    ); }
   @override
-  String toString() => 'User(name: $name, email: $email)';
-}
-
+  String toString() => 'User(name: $name, email: $email)';}
 class UserRepository {
-  // Simulated JSON string response from an API
   final String _rawApiResponse = '''
   [
     {"name": "Alice Johnson", "email": "alice@example.com"},
     {"name": "Bob Smith", "email": "bob@example.com"}
   ]
   ''';
-
   Future<List<User>> fetchUsers() async {
     await Future.delayed(Duration(milliseconds: 200));
-
-    // Simulated parsing step (equivalent to jsonDecode)
     List<Map<String, dynamic>> parsedList = [
       {"name": "Alice Johnson", "email": "alice@example.com"},
       {"name": "Bob Smith", "email": "bob@example.com"}
     ];
-
-    // Map each JSON object to a User instance
     return parsedList.map((json) => User.fromJson(json)).toList();
   }
 }
-
 Future<void> exercise2() async {
   final userRepo = UserRepository();
   print('Fetching users from simulated API...');
   List<User> users = await userRepo.fetchUsers();
-  
   for (var user in users) {
     print('Parsed User: $user');
   }
@@ -145,27 +113,18 @@ Future<void> exercise2() async {
 // ------------------------------------------
 void exercise3() {
   print('Start of main execution (Synchronous)');
-
-  // 1. Scheduled on the Event Queue
   Future(() {
     print('Event Queue Callback 1 (Future)');
   });
-
-  // 2. Scheduled on the Microtask Queue
   scheduleMicrotask(() {
     print('Microtask Queue Callback 1');
   });
-
-  // 3. Another Microtask
   scheduleMicrotask(() {
     print('Microtask Queue Callback 2');
   });
-
-  // 4. Another Event Queue item
   Future(() {
     print('Event Queue Callback 2 (Future)');
   });
-
   print('End of main execution (Synchronous)');
 
   /* 
@@ -201,14 +160,10 @@ Future<void> exercise4() async {
 class Settings {
   final String theme;
   final bool notificationsEnabled;
-
-  // Internal cache map
   static final Map<String, Settings> _cache = {};
 
-  // Private named constructor
   Settings._internal(this.theme, this.notificationsEnabled);
 
-  // Factory constructor returning singleton / cached instance
   factory Settings({String theme = 'dark', bool notificationsEnabled = true}) {
     String key = '$theme-$notificationsEnabled';
     
@@ -219,17 +174,13 @@ class Settings {
     );
   }
 }
-
 void exercise5() {
-  // Creating multiple instances with identical parameters
   Settings configA = Settings(theme: 'dark', notificationsEnabled: true);
   Settings configB = Settings(theme: 'dark', notificationsEnabled: true);
   Settings configC = Settings(theme: 'light', notificationsEnabled: false);
 
   print('configA theme: ${configA.theme}');
   print('configB theme: ${configB.theme}');
-
-  // Verification using identical()
   bool isSameInstance = identical(configA, configB);
   print('Are configA and configB identical instances? $isSameInstance'); // true
 
